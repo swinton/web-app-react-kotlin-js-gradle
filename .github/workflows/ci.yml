@@ -47,14 +47,22 @@ jobs:
         run: |
           detekt --input ${{ github.workspace }} --report sarif:${{ github.workspace }}/detekt.sarif.json
 
+      - name: Make artifact location URIs relative
+        continue-on-error: true
+        run: |
+          jq \
+            --arg github_workspace ${{ github.workspace }} \
+            '. | ( .runs[].results[].locations[].physicalLocation.artifactLocation.uri |= if test($github_workspace) then .[($github_workspace | length | . + 1):] else . end )' \
+            ${{ github.workspace }}/detekt.sarif.json > ${{ github.workspace }}/detekt.relativeURIs.sarif.json
+
       - name: List results
         run: |
-          cat ${{ github.workspace }}/detekt.sarif.json | jq '.runs[0].results[]'
+          cat ${{ github.workspace }}/detekt.relativeURIs.sarif.json | jq '.runs[0].results[]'
 
       - name: List locations
         continue-on-error: true
         run: |
-          cat detekt.sarif.json \
+          cat ${{ github.workspace }}/detekt.relativeURIs.sarif.json \
             | jq '.runs[0].results[].locations[].physicalLocation.artifactLocation.uri' -r \
             | uniq \
             | xargs ls -ltr
@@ -63,5 +71,5 @@ jobs:
       - uses: swinton/codeql-action/upload-sarif@main
         with:
           # Path to SARIF file relative to the root of the repository
-          sarif_file: detekt.sarif.json
+          sarif_file: ${{ github.workspace }}/detekt.relativeURIs.sarif.json
           checkout_path: ${{ github.workspace }}
