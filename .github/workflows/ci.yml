@@ -37,9 +37,9 @@ jobs:
         with:
           args: --input . --report sarif:./detekt.sarif.json
 
-      - name: View SARIF
+      - name: List results
         run: |
-          cat ${{ github.workspace }}/detekt.sarif.json | jq '.'
+          cat ${{ github.workspace }}/detekt.sarif.json | jq '.runs[0].results[]'
 
       - name: List locations
         continue-on-error: true
