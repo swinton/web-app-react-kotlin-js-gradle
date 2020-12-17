@@ -60,4 +60,4 @@ jobs:
         with:
           # Path to SARIF file relative to the root of the repository
           sarif_file: detekt.sarif.json
-          checkout_path: /github/workspace
+          checkout_path: /github/workspace/
