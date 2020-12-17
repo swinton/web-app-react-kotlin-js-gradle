@@ -22,6 +22,12 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
@@ -33,15 +39,14 @@ jobs:
         continue-on-error: true
         uses: natiginfo/action-detekt-all@1.15.0-RC2
         with:
-          args: --input . --report sarif:detekt.sarif.json
+          args: --input ${{ github.workspace }} --report sarif:${{ github.workspace }}/detekt.sarif.json
 
-      - name: Debug
-        continue-on-error: true
+      - name: View SARIF
         run: |
-          echo github.workspace is "${{ github.workspace }}"
-          ls ${{ github.workspace }}/detekt.sarif.json
+          cat ${{ github.workspace }}/detekt.sarif.json | jq '.'
 
       - name: List locations
+        continue-on-error: true
         run: |
           cat detekt.sarif.json \
             | jq '.runs[0].results[].locations[].physicalLocation.artifactLocation.uri' -r \
@@ -52,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: SARIF
-          path: detekt.sarif.json
+          path: ${{ github.workspace }}/detekt.sarif.json
 
       #   # Uploads results.sarif to GitHub repository using the upload-sarif action
       # - uses: github/codeql-action/upload-sarif@v1
