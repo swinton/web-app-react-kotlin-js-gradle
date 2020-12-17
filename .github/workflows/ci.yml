@@ -45,7 +45,7 @@ jobs:
       - name: Detekt
         continue-on-error: true
         run: |
-          detekt --input . --report sarif:./detekt.sarif.json
+          detekt --input ${{ github.workspace }} --report sarif:${{ github.workspace }}/detekt.sarif.json
 
       - name: List results
         run: |
@@ -65,3 +65,10 @@ jobs:
           # Path to SARIF file relative to the root of the repository
           sarif_file: detekt.sarif.json
           checkout_path: ${{ github.workspace }}
+
+      # Uploads results.sarif to GitHub repository using the upload-sarif action
+      - uses: swinton/codeql-action/upload-sarif@main
+        with:
+          # Path to SARIF file relative to the root of the repository
+          sarif_file: detekt.sarif.json
+          checkout_path: ${{ github.workspace }}/
